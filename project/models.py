@@ -12,19 +12,16 @@ class User(db.Model):
     username = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String, nullable=False)
     authenticated = db.Column(db.Boolean, default=False)
-    show_completed_task = db.Column(db.Boolean, default=True)
+    admin = db.Column(db.Boolean, default=False)
+    groupID = db.Column(db.Integer, default=None)
 
-    tasks = db.relationship('Task', backref="users", cascade="all, delete-orphan", lazy='dynamic')
-
-    # one to many mapping between user and tasks, deletes all tasks when user is deleted
-
-    def __init__(self, email, password, username, admin=False):
+    def __init__(self, email, password, username, admin=False, groupID=None):
         self.email = email
         self.password = bcrypt.generate_password_hash(str(password))
         self.registered_on = datetime.datetime.now()
         self.username = username
-        self.show_completed_task = True
         self.admin = admin
+        self.groupID = groupID
 
     def is_active(self):
         """True, as all users are active."""
@@ -42,38 +39,42 @@ class User(db.Model):
         return True
 
 
-class Task(db.Model):
-    __tablename__ = "tasks"
+class Meal(db.Model):
+    __tablename__ = "meals"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    content = db.Column(db.Text)
-    done = db.Column(db.Boolean, default=False)
-    start_date = db.Column(db.DateTime, default=datetime.datetime.now())
-    due_date = db.Column(db.DateTime, nullable=True)
-    category = db.Column(db.Text, nullable=True)
-    lft = db.Column(db.Integer, nullable=False)
-    rgt = db.Column(db.Integer, nullable=False)
+    mealType = db.Column(db.String, default=None)
+    date = db.Column(db.DateTime)
+    groupID = db.Column(db.Integer)
+    cost = db.Column(db.Float, default=None)
 
-    # combine the adjacency list model so that it is easier to query for children
-    parent_id = db.Column(db.Integer, nullable=True)
+    def __init__(self, date, groupID, mealType):
+        self.date = date
+        self.groupID = groupID
+        self.mealType = mealType
 
-    def __init__(self, content, user_id, due_date=None, my_right=None, parent_id=None):
-        self.content = content
-        self.due_date = due_date
-        self.user_id = int(user_id)
-        self.done = False
-        self.parent_id = parent_id
 
-        if not my_right:
-            self.lft = 0
-            self.rgt = 1
-            if parent_id:
-                self.lft = my_right + 1
-                self.rgt = my_right + 2
-        else:
-            self.lft = my_right + 1
-            self.rgt = my_right + 2
+class MealParticipation(db.Model):
+    __tablename__ = "meal_participations"
 
-    def __repr__(self):
-        return '<Content %s>' % self.content
+    id = db.Column(db.Integer, primary_key=True)
+    mealID = db.Column(db.Integer)
+    userID = db.Column(db.Integer)
+    date = db.Column(db.DateTime)
+    cooked = db.Column(db.Boolean, default=False)
+
+    def __init__(self, mealID, userID, date, cooked=False):
+        self.mealID = mealID
+        self.userID = userID
+        self.date = date
+        self.cooked = cooked
+
+
+class Group(db.Model):
+    __tablename__ = "groups"
+
+    id = db.Column(db.Integer, primary_key=True)
+    dateLastTallied = db.Column(db.DateTime, default=None)
+
+    def __init__(self, dateLastTallied=None):
+        self.dateLastTallied = dateLastTallied

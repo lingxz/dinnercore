@@ -1,2 +1,2 @@
-# dinnerapp-server
+# dinnercore
 the server for dinnerapp

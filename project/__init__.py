@@ -14,7 +14,7 @@ bcrypt = Bcrypt(app)
 db = SQLAlchemy(app)
 
 # Import after to avoid circular dependency
-from project.models import Task, User
+from project.models import *
 from project.utils import utils
 from project.utils import auth
 
@@ -24,7 +24,6 @@ from project.tasks import tasks
 
 # Register the routes, this looks weird but it necessary to register the blueprint object
 app.register_blueprint(users.users)
-app.register_blueprint(tasks.tasks)
 
 
 @app.route('/')
