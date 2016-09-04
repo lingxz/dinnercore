@@ -98,60 +98,23 @@ class TestUsers(UserTestSetup):
         self.assert200(resp)
         self.assertEquals(resp.json['result'], 'success')
 
-    def test_get_user_preference(self):
-        """User can retrieve task display preference"""
-        token = self.login_user()
-        resp = self.client.get(url_for('users.get_user_preferences'),
-                               headers={'Authorization': 'Bearer ' + token}
-                               )
-        self.assert200(resp)
-        self.assertEquals(resp.json['show_completed_task'], True)
 
-    def test_toggle_user_preference(self):
-        """User can toggle task display preference"""
-        token = self.login_user()
-
-        # Set preference to true
-        resp = self.client.post(url_for('users.show_task_toggle'),
-                                data=json.dumps({'option': True}),
-                                content_type='application/json',
-                                headers={'Authorization': 'Bearer ' + token}
-                                )
-        self.assert200(resp)
-
-        resp = self.client.get(url_for('users.get_user_preferences'),
-                               headers={'Authorization': 'Bearer ' + token})
-        self.assertEquals(resp.json['show_completed_task'], True)
-
-        # Set preference to false
-        resp = self.client.post(url_for('users.show_task_toggle'),
-                                data=json.dumps({'option': False}),
-                                content_type='application/json',
-                                headers={'Authorization': 'Bearer ' + token}
-                                )
-        self.assert200(resp)
-
-        resp = self.client.get(url_for('users.get_user_preferences'),
-                               headers={'Authorization': 'Bearer ' + token})
-        self.assertEquals(resp.json['show_completed_task'], False)
-
-
-class TestAuth(UserTestSetup):
-    """Testing of authentication helper functions"""
-
-    # Need to figure out how to fake the expired token
-
-    def test_auth_routes_require_valid_token(self):
-        """User can retrieve task display preference"""
-        token = "asdf"
-        resp = self.client.get(url_for('users.get_user_preferences'),
-                               headers={'Authorization': 'Bearer ' + token}
-                               )
-        self.assert401(resp)
-        self.assertEquals(resp.json['message'], 'Token is invalid')
-
-    def test_auth_routes_require_token(self):
-        """User can retrieve task display preference"""
-        resp = self.client.get(url_for('users.get_user_preferences'))
-        self.assert401(resp)
-        self.assertEquals(resp.json['message'], 'Missing authorization header')
+# class TestAuth(UserTestSetup):
+#     """Testing of authentication helper functions"""
+#
+#     # Need to figure out how to fake the expired token
+#
+#     def test_auth_routes_require_valid_token(self):
+#         """User can retrieve task display preference"""
+#         token = "asdf"
+#         resp = self.client.get(url_for('users.get_user_preferences'),
+#                                headers={'Authorization': 'Bearer ' + token}
+#                                )
+#         self.assert401(resp)
+#         self.assertEquals(resp.json['message'], 'Token is invalid')
+#
+#     def test_auth_routes_require_token(self):
+#         """User can retrieve task display preference"""
+#         resp = self.client.get(url_for('users.get_user_preferences'))
+#         self.assert401(resp)
+#         self.assertEquals(resp.json['message'], 'Missing authorization header')

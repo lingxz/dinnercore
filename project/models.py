@@ -15,7 +15,7 @@ class User(db.Model):
     admin = db.Column(db.Boolean, default=False)
     groupID = db.Column(db.Integer, default=None)
 
-    def __init__(self, email, password, username, admin=False, groupID=None):
+    def __init__(self, email, password, username, groupID=None, admin=False):
         self.email = email
         self.password = bcrypt.generate_password_hash(str(password))
         self.registered_on = datetime.datetime.now()
@@ -74,7 +74,9 @@ class Group(db.Model):
     __tablename__ = "groups"
 
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
     dateLastTallied = db.Column(db.DateTime, default=None)
 
-    def __init__(self, dateLastTallied=None):
+    def __init__(self, name, dateLastTallied=None):
+        self.name = name
         self.dateLastTallied = dateLastTallied

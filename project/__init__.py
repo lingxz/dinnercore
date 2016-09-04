@@ -15,20 +15,20 @@ db = SQLAlchemy(app)
 
 # Import after to avoid circular dependency
 from project.models import *
-from project.utils import utils
 from project.utils import auth
 
 # Import routes
 from project.users import users
-from project.tasks import tasks
+from project.meals import meals
 
 # Register the routes, this looks weird but it necessary to register the blueprint object
 app.register_blueprint(users.users)
+app.register_blueprint(meals.meals)
 
 
 @app.route('/')
 def index():
-    return app.send_static_file('index.html')
+    return 'hello world'
 
 
 if __name__ == "__main__":
