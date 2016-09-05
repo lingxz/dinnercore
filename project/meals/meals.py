@@ -1,9 +1,9 @@
 from project.utils import auth
-from flask import Blueprint, request, redirect
+from flask import Blueprint, request, redirect, Response
 from project import db, session
 from project.models import User, Meal, MealParticipation, Group
 from sqlalchemy import text
-from datetime import datetime
+from datetime import datetime, date
 import json
 
 meals = Blueprint('meals', __name__)
@@ -24,6 +24,8 @@ def add_group():
 def add_user_to_group():
     user_id = request.json['user_id']
     group_id = request.json['group_id']
+    # to check whether the group exists
+    group = Group.query.get_or_404(group_id)
     current_user = User.query.get(user_id)
     current_user.groupID = group_id
     db.session.commit()
@@ -63,15 +65,53 @@ def get_meal_count_of_user_by_date():
     return json.dumps({'count': count})
 
 
-# @meals.route('/get_meal_count', methods=['POST'])
-# def get_meal_count():
-#     # get meal count of user in the group from last tallied date till now
-#     user_id = request.json['user_id']
-#     group_id = request.json['group_id']
-#     group = Group.query.get(group_id)
-#     last_talied = group.dateLastTallied
-#     today = date.today()
+@meals.route('/tally_meal_count_of_user', methods=['POST'])
+@auth.login_required
+def tally_meal_count_of_user():
+    # get meal count of user in the group from last tallied date till now
+    user_id = request.json['user_id']
+    group_id = request.json['group_id']
+    count = get_meal_count_for_user(user_id, group_id)
+    today = date.today()
+    set_last_tallied_date(group_id, today)
+    return json.dumps({'count': count})
 
+
+@meals.route('/tally_meal_count_of_group', methods=['POST'])
+@auth.login_required
+def tally_meal_count_of_group():
+    group_id = request.json['group_id']
+
+    # check whether group exists
+    group = Group.query.get_or_404(group_id)
+
+    users = User.query.filter(User.groupID == group_id).all()
+    if not users:
+        users = []
+
+    user_to_counts = {}
+    for user in users:
+        count = get_meal_count_for_user(user.id, group_id)
+        user_to_counts[user.id] = count
+
+    today = date.today()
+    set_last_tallied_date(group_id, today)
+
+    return json.dumps(user_to_counts)
+
+
+def get_meal_count_for_user(user_id, group_id):
+    # TODO: get only the meals in the group
+    group = Group.query.get(group_id)
+    last_tallied = group.dateLastTallied
+    if last_tallied:
+        mps = MealParticipation.query.filter(MealParticipation.date > last_tallied,
+                                             MealParticipation.userID == user_id)
+    else:
+        mps = MealParticipation.query.filter(MealParticipation.userID == user_id)
+
+    count = sum(mp.portions for mp in mps)
+    return count
 
 
 def create_meal(date, group_id, meal_type):
@@ -83,7 +123,13 @@ def create_meal(date, group_id, meal_type):
 
 def add_user_to_meal(user_id, meal_id, portions, cooked=False):
     meal = Meal.query.get(meal_id)
-    date = meal.date
-    mp = MealParticipation(meal_id, user_id, date, portions, cooked)
+    meal_date = meal.date
+    mp = MealParticipation(meal_id, user_id, meal_date, portions, cooked)
     db.session.add(mp)
+    db.session.commit()
+
+
+def set_last_tallied_date(group_id, date):
+    group = Group.query.get(group_id)
+    group.dateLastTallied = date
     db.session.commit()
