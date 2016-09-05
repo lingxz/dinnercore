@@ -61,12 +61,14 @@ class MealParticipation(db.Model):
     mealID = db.Column(db.Integer)
     userID = db.Column(db.Integer)
     date = db.Column(db.DateTime)
+    portions = db.Column(db.Integer)
     cooked = db.Column(db.Boolean, default=False)
 
-    def __init__(self, mealID, userID, date, cooked=False):
+    def __init__(self, mealID, userID, date, portions, cooked=False):
         self.mealID = mealID
         self.userID = userID
         self.date = date
+        self.portions = portions
         self.cooked = cooked
 
 
