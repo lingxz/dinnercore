@@ -44,7 +44,7 @@ class Meal(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     mealType = db.Column(db.String, default=None)
-    date = db.Column(db.DateTime)
+    date = db.Column(db.Date)
     groupID = db.Column(db.Integer)
     cost = db.Column(db.Float, default=None)
 
@@ -60,7 +60,7 @@ class MealParticipation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     mealID = db.Column(db.Integer)
     userID = db.Column(db.Integer)
-    date = db.Column(db.DateTime)
+    date = db.Column(db.Date)
     portions = db.Column(db.Integer)
     cooked = db.Column(db.Boolean, default=False)
 
@@ -77,7 +77,7 @@ class Group(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    dateLastTallied = db.Column(db.DateTime, default=None)
+    dateLastTallied = db.Column(db.Date, default=None)
 
     def __init__(self, name, dateLastTallied=None):
         self.name = name

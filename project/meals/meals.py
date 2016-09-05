@@ -2,8 +2,8 @@ from project.utils import auth
 from flask import Blueprint, request, redirect
 from project import db, session
 from project.models import User, Meal, MealParticipation, Group
-from sqlalchemy import text, func
-from datetime import datetime, date
+from sqlalchemy import text
+from datetime import datetime
 import json
 
 meals = Blueprint('meals', __name__)
@@ -35,7 +35,7 @@ def add_user_to_group():
 def add_meal():
     group_id = request.json['group_id']
     date_string = request.json['date']
-    date = datetime.strptime(date_string, '%a %b %d %Y %H:%M:%S GMT%z (%Z)')
+    date = datetime.strptime(date_string, '%a %b %d %Y %H:%M:%S GMT%z (%Z)').date()
     meal_type = request.json['meal_type']
 
     meal_id = create_meal(date, group_id, meal_type)
@@ -56,8 +56,8 @@ def add_meal():
 def get_meal_count_of_user_by_date():
     user_id = request.json['user_id']
     date_string = request.json['date']
-    date = func.date(datetime.strptime(date_string, '%a %b %d %Y %H:%M:%S GMT%z (%Z)'))
-    mps = MealParticipation.query.filter(func.date(MealParticipation.date) == date,
+    date = datetime.strptime(date_string, '%a %b %d %Y %H:%M:%S GMT%z (%Z)').date()
+    mps = MealParticipation.query.filter(MealParticipation.date == date,
                                          MealParticipation.userID == user_id).all()
     count = sum(mp.portions for mp in mps)
     return json.dumps({'count': count})
