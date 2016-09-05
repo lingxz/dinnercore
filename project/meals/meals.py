@@ -105,10 +105,15 @@ def get_meal_count_for_user(user_id, group_id):
     group = Group.query.get(group_id)
     last_tallied = group.dateLastTallied
     if last_tallied:
-        mps = MealParticipation.query.filter(MealParticipation.date > last_tallied,
+        meals = Meal.query.filter(Meal.groupID == group_id, Meal.date > last_tallied).all()
+        meal_ids = [meal.id for meal in meals]
+        mps = MealParticipation.query.filter(MealParticipation.mealID.in_(meal_ids),
                                              MealParticipation.userID == user_id)
     else:
-        mps = MealParticipation.query.filter(MealParticipation.userID == user_id)
+        meals = Meal.query.filter(Meal.groupID == group_id)
+        meal_ids = [meal.id for meal in meals]
+        mps = MealParticipation.query.filter(MealParticipation.mealID.in_(meal_ids),
+                                             MealParticipation.userID == user_id)
 
     count = sum(mp.portions for mp in mps)
     return count
