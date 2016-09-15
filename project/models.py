@@ -7,18 +7,13 @@ from project import db, bcrypt
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    email = db.Column(db.String, nullable=False, unique=True)
-    username = db.Column(db.String, nullable=False, unique=True)
-    password = db.Column(db.String, nullable=False)
-    authenticated = db.Column(db.Boolean, default=False)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, default=None)
     admin = db.Column(db.Boolean, default=False)
     groupID = db.Column(db.Integer, default=None)
 
-    def __init__(self, email, password, username, groupID=None, admin=False):
-        self.email = email
-        self.password = bcrypt.generate_password_hash(str(password))
-        self.registered_on = datetime.datetime.now()
+    def __init__(self, id, username, groupID=None, admin=False):
+        self.id = id
         self.username = username
         self.admin = admin
         self.groupID = groupID
@@ -29,10 +24,6 @@ class User(db.Model):
 
     def get_id(self):
         return self.id
-
-    def is_authenticated(self):
-        """Return True if the user is authenticated."""
-        return self.authenticated
 
     def is_anonymous(self):
         """True, as anonymous users are supported."""

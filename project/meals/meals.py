@@ -10,7 +10,6 @@ meals = Blueprint('meals', __name__)
 
 
 @meals.route('/add_group', methods=['POST'])
-@auth.login_required
 def add_group():
     name = request.json['name']
     new_group = Group(name)
@@ -20,7 +19,6 @@ def add_group():
 
 
 @meals.route('/add_user_to_group', methods=['POST'])
-@auth.login_required
 def add_user_to_group():
     user_id = request.json['user_id']
     group_id = request.json['group_id']
@@ -33,7 +31,6 @@ def add_user_to_group():
 
 
 @meals.route('/add_meal', methods=['POST'])
-@auth.login_required
 def add_meal():
     group_id = request.json['group_id']
     date_string = request.json['date']
@@ -54,7 +51,6 @@ def add_meal():
 
 
 @meals.route('/get_meal_count_of_user_by_date', methods=['POST'])
-@auth.login_required
 def get_meal_count_of_user_by_date():
     user_id = request.json['user_id']
     date_string = request.json['date']
@@ -66,7 +62,6 @@ def get_meal_count_of_user_by_date():
 
 
 @meals.route('/tally_meal_count_of_user', methods=['POST'])
-@auth.login_required
 def tally_meal_count_of_user():
     # get meal count of user in the group from last tallied date till now
     user_id = request.json['user_id']
@@ -78,7 +73,6 @@ def tally_meal_count_of_user():
 
 
 @meals.route('/tally_meal_count_of_group', methods=['POST'])
-@auth.login_required
 def tally_meal_count_of_group():
     group_id = request.json['group_id']
 

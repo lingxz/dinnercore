@@ -29,16 +29,15 @@ def register():
     """
     json_data = request.json
     user = User(
-        email=json_data['email'],
-        username=json_data['username'],
-        password=json_data['password']
+        id=json_data['id'],
+        username=json_data['username']
     )
     try:
         db.session.add(user)
         db.session.commit()
         status = 'success'
     except:
-        status = 'this user is already registered'
+        status = 'registered'
     db.session.close()
     return jsonify({'result': status})
 
