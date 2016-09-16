@@ -1,53 +1,75 @@
 from project.utils import auth
-from flask import Blueprint, request, redirect, Response
+from flask import Blueprint, request, redirect, Response, abort
 from project import db, session
 from project.models import User, Meal, MealParticipation, Group
 from sqlalchemy import text
 from datetime import datetime, date
 import json
+import project.constants as constants
 
 meals = Blueprint('meals', __name__)
 
 
-@meals.route('/add_group', methods=['POST'])
-def add_group():
-    name = request.json['name']
-    new_group = Group(name)
-    db.session.add(new_group)
-    db.session.commit()
-    return 'OK'
-
-
-@meals.route('/add_user_to_group', methods=['POST'])
-def add_user_to_group():
+@meals.route('/api/eating', methods=['POST'])
+def update_meal_participation():
     user_id = request.json['user_id']
-    group_id = request.json['group_id']
-    # to check whether the group exists
+    group = request.json['group']
+    portions = request.json['portions']
+    return 'OK'
+
+
+@meals.route('/api/add_meal', methods=['POST'])
+def add_meal():
+    group_id = request.json['group']
+    meal_type = request.json['meal_type']
+    date = datetime.now()
+
     group = Group.query.get_or_404(group_id)
-    current_user = User.query.get(user_id)
-    current_user.groupID = group_id
+
+    # Check if a meal is running
+    if has_active_meal(group):
+        abort(400)
+
+    # Create meal and update the group
+    meal_id = create_meal(date, group_id, meal_type)
+    group.currentMealID = meal_id
     db.session.commit()
     return 'OK'
 
 
-@meals.route('/add_meal', methods=['POST'])
-def add_meal():
-    group_id = request.json['group_id']
-    date_string = request.json['date']
-    date = datetime.strptime(date_string, '%a %b %d %Y %H:%M:%S GMT%z (%Z)').date()
-    meal_type = request.json['meal_type']
-
-    meal_id = create_meal(date, group_id, meal_type)
-
-    mps = request.json['ate']
-    cooked = request.json['cooked']
-    for user_id in mps:
-        portions = mps[user_id]
-        if user_id == cooked:
-            add_user_to_meal(user_id, meal_id, portions, True)
-        else:
-            add_user_to_meal(user_id, meal_id, portions, False)
+@meals.route('/api/end_meal', methods=['POST'])
+def end_meal():
+    group_id = request.json['group']
+    group = Group.query.get_or_404(group_id)
+    group.currentMealID = constants.DEFAULT_MEAL_ID
+    db.session.commit()
     return 'OK'
+
+
+@meals.route('/api/register_group', methods=['POST'])
+def add_group():
+    group_id = request.json['group']
+    new_group = Group(group_id)
+    try:
+        db.session.add(new_group)
+        db.session.commit()
+        db.session.close()
+        return 'OK'
+    except:
+        db.session.close()
+        abort(400)
+
+
+# @meals.route('/add_user_to_group', methods=['POST'])
+# def add_user_to_group():
+#     user_id = request.json['user_id']
+#     group_id = request.json['group_id']
+#     # to check whether the group exists
+#     group = Group.query.get_or_404(group_id)
+#     current_user = User.query.get(user_id)
+#     current_user.groupID = group_id
+#     db.session.commit()
+#     return 'OK'
 
 
 @meals.route('/get_meal_count_of_user_by_date', methods=['POST'])
@@ -132,3 +154,7 @@ def set_last_tallied_date(group_id, date):
     group = Group.query.get(group_id)
     group.dateLastTallied = date
     db.session.commit()
+
+
+def has_active_meal(group):
+    return group.currentMealID != constants.DEFAULT_MEAL_ID

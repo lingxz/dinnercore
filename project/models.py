@@ -2,6 +2,7 @@
 
 import datetime
 from project import db, bcrypt
+import project.constants as constants
 
 
 class User(db.Model):
@@ -10,7 +11,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, default=None)
     admin = db.Column(db.Boolean, default=False)
-    groupID = db.Column(db.Integer, default=None)
+    groupID = db.Column(db.Integer, default=None, primary_key=True)
 
     def __init__(self, id, username, groupID=None, admin=False):
         self.id = id
@@ -33,7 +34,7 @@ class User(db.Model):
 class Meal(db.Model):
     __tablename__ = "meals"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     mealType = db.Column(db.String, default=None)
     date = db.Column(db.Date)
     groupID = db.Column(db.Integer)
@@ -67,9 +68,8 @@ class Group(db.Model):
     __tablename__ = "groups"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
     dateLastTallied = db.Column(db.Date, default=None)
+    currentMealID = db.Column(db.Integer, default=constants.DEFAULT_MEAL_ID)
 
-    def __init__(self, name, dateLastTallied=None):
-        self.name = name
-        self.dateLastTallied = dateLastTallied
+    def __init__(self, id):
+        self.id = id
