@@ -5,6 +5,7 @@ from project.models import User, Meal, MealParticipation, Group
 from sqlalchemy import text
 from datetime import datetime, date
 import json
+import jsonpickle
 import project.constants as constants
 
 meals = Blueprint('meals', __name__)
@@ -73,6 +74,33 @@ def add_group():
     except:
         db.session.close()
         abort(400)
+
+
+@meals.route('/api/meal_info', methods=['POST'])
+def meal_info():
+    group_id = request.json['group']
+    group = Group.query.get_or_404(group_id)
+
+    # Should allow for specification
+    meal_id = group.currentMealID
+
+    meal_participations = MealParticipation.query.filter_by(
+        mealID=meal_id
+    ).all()
+
+    ret = []
+    for mp in meal_participations:
+        user = User.query.filter_by(
+            id=mp.userID,
+            groupID=group_id
+        ).first()
+        ret.append({
+            'user_name': user.username,
+            'portions': mp.portions,
+            'cooked': mp.cooked
+        })
+
+    return jsonpickle.encode(ret)
 
 
 # @meals.route('/add_user_to_group', methods=['POST'])
@@ -168,11 +196,18 @@ def add_user_to_meal(user_id, meal_id, portions, cooked=False):
     ).first()
 
     if meal_participation:
-        meal_participation.portions = portions
-        meal_participation.cooked = cooked
-    else:
+        if portions == 0:
+            db.session.delete(meal_participation)
+        else:
+            meal_participation.portions = portions
+            meal_participation.cooked = cooked
+        db.session.commit()
+        return
+
+    if portions > 0:
         mp = MealParticipation(meal_id, user_id, meal_date, portions, cooked)
         db.session.add(mp)
+
     db.session.commit()
 
 
