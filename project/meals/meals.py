@@ -13,8 +13,23 @@ meals = Blueprint('meals', __name__)
 @meals.route('/api/eating', methods=['POST'])
 def update_meal_participation():
     user_id = request.json['user_id']
-    group = request.json['group']
+    group_id = request.json['group']
     portions = request.json['portions']
+    cooked = request.json['cooked']
+
+    group = Group.query.get_or_404(group_id)
+
+    # Check if there is no meal
+    if not has_active_meal(group):
+        abort(400)
+
+    add_user_to_meal(
+        user_id=user_id,
+        meal_id=group.currentMealID,
+        portions=portions,
+        cooked=cooked
+    )
+
     return 'OK'
 
 
@@ -145,8 +160,19 @@ def create_meal(date, group_id, meal_type):
 def add_user_to_meal(user_id, meal_id, portions, cooked=False):
     meal = Meal.query.get(meal_id)
     meal_date = meal.date
-    mp = MealParticipation(meal_id, user_id, meal_date, portions, cooked)
-    db.session.add(mp)
+
+    # Search for existing meal participation
+    meal_participation = MealParticipation.query.filter_by(
+        mealID=meal_id,
+        userID=user_id
+    ).first()
+
+    if meal_participation:
+        meal_participation.portions = portions
+        meal_participation.cooked = cooked
+    else:
+        mp = MealParticipation(meal_id, user_id, meal_date, portions, cooked)
+        db.session.add(mp)
     db.session.commit()
 
 

@@ -49,9 +49,8 @@ class Meal(db.Model):
 class MealParticipation(db.Model):
     __tablename__ = "meal_participations"
 
-    id = db.Column(db.Integer, primary_key=True)
-    mealID = db.Column(db.Integer)
-    userID = db.Column(db.Integer)
+    mealID = db.Column(db.Integer, primary_key=True)
+    userID = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date)
     portions = db.Column(db.Integer)
     cooked = db.Column(db.Boolean, default=False)
