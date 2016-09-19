@@ -103,6 +103,18 @@ def meal_info():
     return jsonpickle.encode(ret)
 
 
+@meals.route('/api/meals', methods=['POST'])
+def get_meals():
+    group_id = request.json['group']
+    n = request.json['number']
+    last_n_meals = Meal.query.filter(Meal.groupID == group_id).order_by(Meal.date.desc()).limit(n).all()
+    result = []
+    for meal in last_n_meals:
+        mps = MealParticipation.query.filter(MealParticipation.mealID == meal.id).all()
+        count = sum(mp.portions for mp in mps)
+        result.append([meal.id, count])
+    return jsonpickle.encode(result)
+
 # @meals.route('/add_user_to_group', methods=['POST'])
 # def add_user_to_group():
 #     user_id = request.json['user_id']
