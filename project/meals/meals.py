@@ -81,10 +81,8 @@ def meal_info():
     group_id = request.json['group']
     group = Group.query.get_or_404(group_id)
 
-    # default to current meal id if not given
-    if 'meal_id' in request.json:
-        meal_id = request.json['meal_id']
-    else:
+    meal_id = request.json['meal_id']
+    if meal_id == constants.DEFAULT_MEAL_ID:
         meal_id = group.currentMealID
 
     meal_participations = MealParticipation.query.filter_by(
@@ -109,13 +107,7 @@ def meal_info():
 @meals.route('/api/meals', methods=['POST'])
 def get_meals():
     group_id = request.json['group']
-
-    # default to 5 if not given
-    if 'number' in request.json:
-        n = request.json['number']
-    else:
-        n = 5
-
+    n = request.json['number']
     last_n_meals = Meal.query.filter(Meal.groupID == group_id).order_by(Meal.date.desc()).limit(n).all()
     result = []
     for meal in last_n_meals:
