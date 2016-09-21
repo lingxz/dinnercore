@@ -145,14 +145,13 @@ def tally_meal_count_of_user():
     user_id = request.json['user_id']
     group_id = request.json['group_id']
     count = get_meal_count_for_user(user_id, group_id)
-    today = date.today()
-    set_last_tallied_date(group_id, today)
     return json.dumps({'count': count})
 
 
 @meals.route('/tally_meal_count_of_group', methods=['POST'])
 def tally_meal_count_of_group():
     group_id = request.json['group_id']
+    set_date = request.json['set_date']
 
     # check whether group exists
     group = Group.query.get_or_404(group_id)
@@ -166,8 +165,9 @@ def tally_meal_count_of_group():
         count = get_meal_count_for_user(user.id, group_id)
         user_to_counts[user.id] = count
 
-    today = date.today()
-    set_last_tallied_date(group_id, today)
+    if set_date:
+        today = date.today()
+        set_last_tallied_date(group_id, today)
 
     return json.dumps(user_to_counts)
 
