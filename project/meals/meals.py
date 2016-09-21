@@ -116,6 +116,7 @@ def get_meals():
         result.append([meal.id, count])
     return jsonpickle.encode(result)
 
+
 # @meals.route('/add_user_to_group', methods=['POST'])
 # def add_user_to_group():
 #     user_id = request.json['user_id']
@@ -148,9 +149,9 @@ def tally_meal_count_of_user():
     return json.dumps({'count': count})
 
 
-@meals.route('/tally_meal_count_of_group', methods=['POST'])
+@meals.route('/api/tally_group', methods=['POST'])
 def tally_meal_count_of_group():
-    group_id = request.json['group_id']
+    group_id = request.json['group']
     set_date = request.json['set_date']
 
     # check whether group exists
@@ -163,7 +164,7 @@ def tally_meal_count_of_group():
     user_to_counts = {}
     for user in users:
         count = get_meal_count_for_user(user.id, group_id)
-        user_to_counts[user.id] = count
+        user_to_counts[user.username] = count
 
     if set_date:
         today = date.today()
