@@ -157,3 +157,6 @@ node_modules
 
 # test coverage reports
 coverage
+
+# database
+project/database.db
