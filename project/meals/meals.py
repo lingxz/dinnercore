@@ -167,8 +167,8 @@ def tally_meal_count_of_group():
         user_to_counts[user.username] = count
 
     if set_date:
-        today = date.today()
-        set_last_tallied_date(group_id, today)
+        now = datetime.now()
+        set_last_tallied_date(group_id, now)
 
     return json.dumps(user_to_counts)
 
