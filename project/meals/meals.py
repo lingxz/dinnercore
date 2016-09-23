@@ -172,6 +172,26 @@ def tally_meal_count_of_group():
 
     return json.dumps(user_to_counts)
 
+@meals.route('/api/tally_person', methods=['POST'])
+def tally_person():
+    user_id = request.json['group_id']
+    group_id = request.json['user_id']
+    group = Group.query.get_or_404(group_id)
+    last_tallied = group.dateLastTallied
+    if last_tallied:
+        meals = Meal.query.filter(Meal.groupID == group_id, Meal.date > last_tallied).all()
+    else:
+        meals = Meal.query.filter(Meal.groupID == group_id).all()
+    meal_ids = [meal.id for meal in meals]
+    mps = MealParticipation.query.filter(MealParticipation.mealID.in_(meal_ids),
+                                         MealParticipation.userID == user_id).all()
+    result = []
+
+    for mp in mps:
+        meal = Meal.query.get(mp.mealID)
+        result.append({'mealID': mp.mealID, 'date': mp.date, 'type': meal.mealType})
+    return jsonpickle.encode(result)
+
 
 def get_meal_count_for_user(user_id, group_id):
     # TODO: get only the meals in the group
@@ -183,7 +203,7 @@ def get_meal_count_for_user(user_id, group_id):
         mps = MealParticipation.query.filter(MealParticipation.mealID.in_(meal_ids),
                                              MealParticipation.userID == user_id)
     else:
-        meals = Meal.query.filter(Meal.groupID == group_id)
+        meals = Meal.query.filter(Meal.groupID == group_id).all()
         meal_ids = [meal.id for meal in meals]
         mps = MealParticipation.query.filter(MealParticipation.mealID.in_(meal_ids),
                                              MealParticipation.userID == user_id)
