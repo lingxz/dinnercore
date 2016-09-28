@@ -34,6 +34,57 @@ def update_meal_participation():
     return 'OK'
 
 
+# for adding chef after meal has ended
+@meals.route('/api/add_chef', methods=['POST'])
+def add_chef():
+    meal_id = request.json['meal_id']
+    user_id = request.json['user_id']
+    mp = MealParticipation.query.filter(MealParticipation.mealID == meal_id,
+                                        MealParticipation.userID == user_id).first()
+    if mp:
+        mp.cooked = True
+        db.session.commit()
+    else:
+        add_user_to_meal(user_id=user_id,
+                         meal_id=meal_id,
+                         portions=0,
+                         cooked=True)
+    return 'OK'
+
+
+@meals.route('/api/remove_chef', methods=['POST'])
+def remove_chef():
+    meal_id = request.json['meal_id']
+    user_id = request.json['user_id']
+    mp = MealParticipation.query.filter(MealParticipation.mealID == meal_id,
+                                        MealParticipation.userID == user_id).first()
+    if not mp:
+        abort(404)
+
+    mp.cooked = False
+    db.session.commit()
+    return 'OK'
+
+
+# for adding / changing after a meal has ended
+@meals.route('/api/change_portions')
+def add_eater():
+    meal_id = request.json['meal_id']
+    user_id = request.json['user_id']
+    portions = request.json['portions']
+    mp = MealParticipation.query.filter(MealParticipation.mealID == meal_id,
+                                        MealParticipation.userID == user_id).first()
+    if mp:
+        mp.portions = portions
+        db.session.commit()
+    else:
+        add_user_to_meal(user_id=user_id,
+                         meal_id=meal_id,
+                         portions=portions,
+                         cooked=False)
+    return 'OK'
+
+
 @meals.route('/api/add_meal', methods=['POST'])
 def add_meal():
     group_id = request.json['group']
