@@ -67,13 +67,14 @@ def remove_chef():
 
 
 # for adding / changing after a meal has ended
-@meals.route('/api/change_portions')
-def add_eater():
+@meals.route('/api/change_portions', methods=['POST'])
+def change_portions():
     meal_id = request.json['meal_id']
     user_id = request.json['user_id']
     portions = request.json['portions']
     mp = MealParticipation.query.filter(MealParticipation.mealID == meal_id,
                                         MealParticipation.userID == user_id).first()
+
     if mp:
         mp.portions = portions
         db.session.commit()
