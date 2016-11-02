@@ -3,16 +3,17 @@ from flask import Blueprint, request, redirect, Response, abort
 from project import db, session
 from project.models import User, Group
 from datetime import datetime, date
+import json
 import jsonpickle
 import project.constants as constants
 
 bathing = Blueprint('bathing', __name__)
 
 
-@bathing.route('/api/bathing', methods=['POST'])
-def add_bathing():
+@bathing.route('/api/start_bathing', methods=['POST'])
+def start_bathing():
     user_id = request.json['user_id']
-    user = User.query.get_or_404(user_id)
+    user = User.query.filter_by(id=user_id).first()
     now = datetime.now()
     group = Group.query.get_or_404(user.groupID)
     group.currentBathingID = user_id
@@ -21,16 +22,34 @@ def add_bathing():
     return 'OK'
 
 
+@bathing.route('/api/stop_bathing', methods=['POST'])
+def stop_bathing():
+    user_id = request.json['user_id']
+    user = User.query.filter_by(id=user_id).first()
+    group = Group.query.get_or_404(user.groupID)
+    if group.currentBathingID == constants.DEFAULT_BATHING_ID:
+        abort(400)
+    elif group.currentBathingID != user_id:
+        return json.dumps({'correct_person': False})
+    else:
+        group.currentBathingID = constants.DEFAULT_BATHING_ID
+        group.currentBathingStart = None
+        db.session.commit()
+        return json.dumps({'correct_person': True})
+
+
 @bathing.route('/api/check_bathing', methods=['POST'])
 def check_bathing():
     user_id = request.json['user_id']
+
+    # TODO: ask user which group if user is in multiple groups
     user = User.query.filter_by(id=user_id).first()
     group_id = user.groupID
     group = Group.query.get_or_404(group_id)
     if group.currentBathingID == constants.DEFAULT_BATHING_ID:
         result = {"bathing": False}
     else:
-        user = User.query.get_or_404(group.currentBathingID)
+        user = User.query.filter_by(id=group.currentBathingID, groupID=group_id).first()
         result = {"bathing": True,
                   "username": user.username,
                   "start": group.currentBathingStart.strftime('%H:%M')}
