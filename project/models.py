@@ -69,6 +69,8 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dateLastTallied = db.Column(db.DateTime, default=None)
     currentMealID = db.Column(db.Integer, default=constants.DEFAULT_MEAL_ID)
+    currentBathingID = db.Column(db.Integer, constants.DEFAULT_BATHING_ID)
+    currentBathingStart = db.Column(db.DateTime, default=None)
 
     def __init__(self, id):
         self.id = id
