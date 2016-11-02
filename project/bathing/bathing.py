@@ -9,7 +9,7 @@ import project.constants as constants
 bathing = Blueprint('bathing', __name__)
 
 
-@bathing.route('api/bathing', methods=['POST'])
+@bathing.route('/api/bathing', methods=['POST'])
 def add_bathing():
     user_id = request.json['user_id']
     user = User.query.get_or_404(user_id)
@@ -21,10 +21,10 @@ def add_bathing():
     return 'OK'
 
 
-@bathing.route('api/check', methods=['POST'])
+@bathing.route('/api/check_bathing', methods=['POST'])
 def check_bathing():
     user_id = request.json['user_id']
-    user = User.query.get_or_404(user_id)
+    user = User.query.filter_by(id=user_id).first()
     group_id = user.groupID
     group = Group.query.get_or_404(group_id)
     if group.currentBathingID == constants.DEFAULT_BATHING_ID:
