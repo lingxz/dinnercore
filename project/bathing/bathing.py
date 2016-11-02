@@ -16,10 +16,16 @@ def start_bathing():
     user = User.query.filter_by(id=user_id).first()
     now = datetime.now()
     group = Group.query.get_or_404(user.groupID)
-    group.currentBathingID = user_id
-    group.currentBathingStart = now
-    db.session.commit()
-    return 'OK'
+
+    if group.currentBathingID == user_id:
+        return json.dumps({"other_person": False, "same_person": True})
+    elif group.currentBathingID != constants.DEFAULT_BATHING_ID:
+        return json.dumps({"other_person": True, "same_person": False})
+    else:
+        group.currentBathingID = user_id
+        group.currentBathingStart = now
+        db.session.commit()
+        return json.dumps({"other_person": False, "same_person": False})
 
 
 @bathing.route('/api/stop_bathing', methods=['POST'])
