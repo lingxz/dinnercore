@@ -1,5 +1,5 @@
 from project.utils import auth
-from flask import Blueprint, request
+from flask import Blueprint, request, abort
 from project import db, session, bcrypt, jsonify
 from project.models import User
 from sqlalchemy import text
@@ -29,18 +29,18 @@ def register():
     """
     json_data = request.json
     user = User(
-        email=json_data['email'],
+        id=json_data['id'],
         username=json_data['username'],
-        password=json_data['password']
+        groupID=json_data['groupID']
     )
     try:
         db.session.add(user)
         db.session.commit()
-        status = 'success'
+        db.session.close()
+        return 'OK'
     except:
-        status = 'this user is already registered'
-    db.session.close()
-    return jsonify({'result': status})
+        db.session.close()
+        abort(400)
 
 
 @users.route('/api/logout')

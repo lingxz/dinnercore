@@ -2,23 +2,19 @@
 
 import datetime
 from project import db, bcrypt
+import project.constants as constants
 
 
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    email = db.Column(db.String, nullable=False, unique=True)
-    username = db.Column(db.String, nullable=False, unique=True)
-    password = db.Column(db.String, nullable=False)
-    authenticated = db.Column(db.Boolean, default=False)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, default=None)
     admin = db.Column(db.Boolean, default=False)
-    groupID = db.Column(db.Integer, default=None)
+    groupID = db.Column(db.Integer, default=None, primary_key=True)
 
-    def __init__(self, email, password, username, groupID=None, admin=False):
-        self.email = email
-        self.password = bcrypt.generate_password_hash(str(password))
-        self.registered_on = datetime.datetime.now()
+    def __init__(self, id, username, groupID=None, admin=False):
+        self.id = id
         self.username = username
         self.admin = admin
         self.groupID = groupID
@@ -30,10 +26,6 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
-    def is_authenticated(self):
-        """Return True if the user is authenticated."""
-        return self.authenticated
-
     def is_anonymous(self):
         """True, as anonymous users are supported."""
         return True
@@ -42,9 +34,9 @@ class User(db.Model):
 class Meal(db.Model):
     __tablename__ = "meals"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     mealType = db.Column(db.String, default=None)
-    date = db.Column(db.Date)
+    date = db.Column(db.DateTime)
     groupID = db.Column(db.Integer)
     cost = db.Column(db.Float, default=None)
 
@@ -57,10 +49,9 @@ class Meal(db.Model):
 class MealParticipation(db.Model):
     __tablename__ = "meal_participations"
 
-    id = db.Column(db.Integer, primary_key=True)
-    mealID = db.Column(db.Integer)
-    userID = db.Column(db.Integer)
-    date = db.Column(db.Date)
+    mealID = db.Column(db.Integer, primary_key=True)
+    userID = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.DateTime)
     portions = db.Column(db.Integer)
     cooked = db.Column(db.Boolean, default=False)
 
@@ -76,9 +67,8 @@ class Group(db.Model):
     __tablename__ = "groups"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    dateLastTallied = db.Column(db.Date, default=None)
+    dateLastTallied = db.Column(db.DateTime, default=None)
+    currentMealID = db.Column(db.Integer, default=constants.DEFAULT_MEAL_ID)
 
-    def __init__(self, name, dateLastTallied=None):
-        self.name = name
-        self.dateLastTallied = dateLastTallied
+    def __init__(self, id):
+        self.id = id
