@@ -10,7 +10,7 @@ bathing = Blueprint('bathing', __name__)
 
 
 @bathing.route('api/bathing', methods=['POST'])
-def bathing():
+def add_bathing():
     user_id = request.json['user_id']
     user = User.query.get_or_404(user_id)
     now = datetime.now()
