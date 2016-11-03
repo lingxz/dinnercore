@@ -28,6 +28,7 @@ def start_bathing():
             group_id = user.groupID
 
     group = Group.query.get_or_404(group_id)
+    now = datetime.now()
     if group.currentBathingID == user_id:
         return json.dumps({"other_person": False, "same_person": True})
     elif group.currentBathingID != constants.DEFAULT_BATHING_ID:
