@@ -6,6 +6,7 @@ from datetime import datetime, date
 import json
 import jsonpickle
 import project.constants as constants
+from werkzeug.exceptions import NotFound
 
 bathing = Blueprint('bathing', __name__)
 
@@ -13,13 +14,20 @@ bathing = Blueprint('bathing', __name__)
 @bathing.route('/api/start_bathing', methods=['POST'])
 def start_bathing():
     user_id = request.json['user_id']
-    users = User.query.filter_by(id=user_id).all()
-    if len(users) != 1:
-        abort(400)
-    user = users[0]
-    now = datetime.now()
-    group = Group.query.get_or_404(user.groupID)
+    group_id = request.json['group_id']
+    try:
+        user = User.query.get_or_404((user_id, group_id))
+    except NotFound:
+        users = User.query.filter_by(id=user_id).all()
+        if len(users) == 0:
+            abort(404)
+        elif len(users) != 1:
+            abort(400)
+        else:
+            user = users[0]
+            group_id = user.groupID
 
+    group = Group.query.get_or_404(group_id)
     if group.currentBathingID == user_id:
         return json.dumps({"other_person": False, "same_person": True})
     elif group.currentBathingID != constants.DEFAULT_BATHING_ID:
@@ -34,11 +42,20 @@ def start_bathing():
 @bathing.route('/api/stop_bathing', methods=['POST'])
 def stop_bathing():
     user_id = request.json['user_id']
-    users = User.query.filter_by(id=user_id).all()
-    if len(users) != 1:
-        abort(400)
-    user = users[0]
-    group = Group.query.get_or_404(user.groupID)
+    group_id = request.json['group_id']
+    try:
+        user = User.query.get_or_404((user_id, group_id))
+    except NotFound:
+        users = User.query.filter_by(id=user_id).all()
+        if len(users) == 0:
+            abort(404)
+        elif len(users) != 1:
+            abort(400)
+        else:
+            user = users[0]
+            group_id = user.groupID
+
+    group = Group.query.get_or_404(group_id)
     if group.currentBathingID == constants.DEFAULT_BATHING_ID:
         return json.dumps({'bathing': False})
     elif group.currentBathingID != user_id:
@@ -53,14 +70,21 @@ def stop_bathing():
 @bathing.route('/api/check_bathing', methods=['POST'])
 def check_bathing():
     user_id = request.json['user_id']
+    group_id = request.json['group_id']
+    try:
+        user = User.query.get_or_404((user_id, group_id))
+    except NotFound:
+        users = User.query.filter_by(id=user_id).all()
+        # not registered
+        if len(users) == 0:
+            abort(404)
+        # in multiple groups
+        elif len(users) != 1:
+            abort(400)
+        else:
+            user = users[0]
+            group_id = user.groupID
 
-    # TODO: ask user which group if user is in multiple groups
-    users = User.query.filter_by(id=user_id).all()
-    if len(users) != 1:
-        abort(400)
-    user = users[0]
-
-    group_id = user.groupID
     group = Group.query.get_or_404(group_id)
     if group.currentBathingID == constants.DEFAULT_BATHING_ID:
         result = {"bathing": False}
