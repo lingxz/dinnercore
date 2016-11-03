@@ -13,7 +13,10 @@ bathing = Blueprint('bathing', __name__)
 @bathing.route('/api/start_bathing', methods=['POST'])
 def start_bathing():
     user_id = request.json['user_id']
-    user = User.query.filter_by(id=user_id).first()
+    users = User.query.filter_by(id=user_id).all()
+    if len(users) != 1:
+        abort(400)
+    user = users[0]
     now = datetime.now()
     group = Group.query.get_or_404(user.groupID)
 
@@ -31,17 +34,20 @@ def start_bathing():
 @bathing.route('/api/stop_bathing', methods=['POST'])
 def stop_bathing():
     user_id = request.json['user_id']
-    user = User.query.filter_by(id=user_id).first()
+    users = User.query.filter_by(id=user_id).all()
+    if len(users) != 1:
+        abort(400)
+    user = users[0]
     group = Group.query.get_or_404(user.groupID)
     if group.currentBathingID == constants.DEFAULT_BATHING_ID:
-        abort(400)
+        return json.dumps({'bathing': False})
     elif group.currentBathingID != user_id:
-        return json.dumps({'correct_person': False})
+        return json.dumps({'bathing': True, 'correct_person': False})
     else:
         group.currentBathingID = constants.DEFAULT_BATHING_ID
         group.currentBathingStart = None
         db.session.commit()
-        return json.dumps({'correct_person': True})
+        return json.dumps({'bathing': True, 'correct_person': True})
 
 
 @bathing.route('/api/check_bathing', methods=['POST'])
@@ -49,7 +55,11 @@ def check_bathing():
     user_id = request.json['user_id']
 
     # TODO: ask user which group if user is in multiple groups
-    user = User.query.filter_by(id=user_id).first()
+    users = User.query.filter_by(id=user_id).all()
+    if len(users) != 1:
+        abort(400)
+    user = users[0]
+
     group_id = user.groupID
     group = Group.query.get_or_404(group_id)
     if group.currentBathingID == constants.DEFAULT_BATHING_ID:
