@@ -255,7 +255,11 @@ def tally_user():
 
     for mp in mps:
         meal = Meal.query.get(mp.mealID)
-        result.append({'mealID': mp.mealID, 'date': mp.actual_date.strftime('%d %b'), 'type': meal.mealType})
+        if mp.actual_date:
+            date = mp.actual_date
+        else:
+            date = mp.date
+        result.append({'mealID': mp.mealID, 'date': date.strftime('%d %b'), 'type': meal.mealType})
     return jsonpickle.encode(result)
 
 
@@ -288,6 +292,7 @@ def create_meal(date, group_id, meal_type, actual_date=None):
 def add_user_to_meal(user_id, meal_id, portions, cooked=False):
     meal = Meal.query.get(meal_id)
     meal_date = meal.date
+    meal_actual_date = meal.actual_date
 
     # Search for existing meal participation
     meal_participation = MealParticipation.query.filter_by(
@@ -305,7 +310,7 @@ def add_user_to_meal(user_id, meal_id, portions, cooked=False):
         return
 
     if portions > 0:
-        mp = MealParticipation(meal_id, user_id, meal_date, portions, cooked)
+        mp = MealParticipation(meal_id, user_id, meal_date, portions, cooked, meal_actual_date)
         db.session.add(mp)
 
     db.session.commit()
