@@ -36,12 +36,14 @@ class Meal(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     mealType = db.Column(db.String, default=None)
-    date = db.Column(db.DateTime)
+    date = db.Column(db.DateTime)  # date posted
+    actual_date = db.Column(db.DateTime, default=None)  # date that the meal is taking place
     groupID = db.Column(db.Integer)
     cost = db.Column(db.Float, default=None)
 
-    def __init__(self, date, groupID, mealType):
+    def __init__(self, date, groupID, mealType, actual_date=None):
         self.date = date
+        self.actual_date = actual_date
         self.groupID = groupID
         self.mealType = mealType
 
@@ -52,13 +54,15 @@ class MealParticipation(db.Model):
     mealID = db.Column(db.Integer, primary_key=True)
     userID = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime)
+    actual_date = db.Column(db.DateTime, default=None)
     portions = db.Column(db.Integer)
     cooked = db.Column(db.Boolean, default=False)
 
-    def __init__(self, mealID, userID, date, portions, cooked=False):
+    def __init__(self, mealID, userID, date, portions, cooked=False, actual_date=None):
         self.mealID = mealID
         self.userID = userID
         self.date = date
+        self.actual_date = actual_date
         self.portions = portions
         self.cooked = cooked
 

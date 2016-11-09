@@ -4,6 +4,7 @@ from project import db, session
 from project.models import User, Meal, MealParticipation, Group
 from sqlalchemy import text
 from datetime import datetime, date
+import parsedatetime as pdt
 import json
 import jsonpickle
 import project.constants as constants
@@ -90,6 +91,13 @@ def change_portions():
 def add_meal():
     group_id = request.json['group']
     meal_type = request.json['meal_type']
+    actual_date_string = request.json['actual_date_string']
+    if actual_date_string:
+        cal = pdt.Calendar()
+        actual_datetime = cal.nlp(actual_date_string)[0][0]
+    else:
+        actual_datetime = actual_date_string
+
     date = datetime.now()
 
     group = Group.query.get_or_404(group_id)
@@ -99,10 +107,15 @@ def add_meal():
         abort(400)
 
     # Create meal and update the group
-    meal_id = create_meal(date, group_id, meal_type)
+    meal_id = create_meal(date, group_id, meal_type, actual_datetime)
     group.currentMealID = meal_id
     db.session.commit()
-    return 'OK'
+
+    if actual_datetime:
+        string = actual_datetime.strftime('%d %b')
+    else:
+        string = ''
+    return json.dumps(string)
 
 
 @meals.route('/api/end_meal', methods=['POST'])
@@ -242,7 +255,7 @@ def tally_user():
 
     for mp in mps:
         meal = Meal.query.get(mp.mealID)
-        result.append({'mealID': mp.mealID, 'date': mp.date.strftime('%d %b'), 'type': meal.mealType})
+        result.append({'mealID': mp.mealID, 'date': mp.actual_date.strftime('%d %b'), 'type': meal.mealType})
     return jsonpickle.encode(result)
 
 
@@ -265,8 +278,8 @@ def get_meal_count_for_user(user_id, group_id):
     return count
 
 
-def create_meal(date, group_id, meal_type):
-    meal = Meal(date, group_id, meal_type)
+def create_meal(date, group_id, meal_type, actual_date=None):
+    meal = Meal(date, group_id, meal_type, actual_date)
     db.session.add(meal)
     db.session.commit()
     return meal.id
