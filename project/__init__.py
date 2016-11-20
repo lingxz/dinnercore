@@ -20,10 +20,12 @@ from project.utils import auth
 # Import routes
 from project.users import users
 from project.meals import meals
+from project.bathing import bathing
 
 # Register the routes, this looks weird but it necessary to register the blueprint object
 app.register_blueprint(users.users)
 app.register_blueprint(meals.meals)
+app.register_blueprint(bathing.bathing)
 
 
 @app.route('/')
